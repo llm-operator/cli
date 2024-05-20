@@ -45,7 +45,7 @@ func createCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&title, "title", "", "Title of the organization")
-	cmd.Flags().StringVar(&namespace, "kubernetes-namespace", "", "Kubernetes namesapce of the organization")
+	cmd.Flags().StringVarP(&namespace, "kubernetes-namespace", "n", "", "Kubernetes namesapce of the organization")
 	_ = cmd.MarkFlagRequired("title")
 	_ = cmd.MarkFlagRequired("kubernetes-namespace")
 	return cmd
