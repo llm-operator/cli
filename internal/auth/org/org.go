@@ -36,16 +36,18 @@ func Cmd() *cobra.Command {
 }
 
 func createCmd() *cobra.Command {
-	var title string
+	var title, namespace string
 	cmd := &cobra.Command{
 		Use:  "create",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return create(cmd.Context(), title)
+			return create(cmd.Context(), title, namespace)
 		},
 	}
 	cmd.Flags().StringVar(&title, "title", "", "Title of the organization")
+	cmd.Flags().StringVar(&namespace, "kubernetes-namespace", "", "Kubernetes namesapce of the organization")
 	_ = cmd.MarkFlagRequired("title")
+	_ = cmd.MarkFlagRequired("kubernetes-namespace")
 	return cmd
 }
 
@@ -95,14 +97,15 @@ func addMemberCmd() *cobra.Command {
 	return cmd
 }
 
-func create(ctx context.Context, title string) error {
+func create(ctx context.Context, title, namespace string) error {
 	env, err := runtime.NewEnv(ctx)
 	if err != nil {
 		return err
 	}
 
 	req := uv1.CreateOrganizationRequest{
-		Title: title,
+		Title:               title,
+		KubernetesNamespace: namespace,
 	}
 	var resp uv1.Organization
 	if err := ihttp.NewClient(env).Send(http.MethodPost, path, &req, &resp); err != nil {
@@ -124,11 +127,11 @@ func list(ctx context.Context) error {
 		return err
 	}
 
-	tbl := table.New("Title", "Created At")
+	tbl := table.New("Title", "Kubernetes namespace", "Created At")
 	ui.FormatTable(tbl)
 
 	for _, o := range orgs {
-		tbl.AddRow(o.Title, time.Unix(o.CreatedAt, 0).Format(time.RFC3339))
+		tbl.AddRow(o.Title, o.KubernetesNamespace, time.Unix(o.CreatedAt, 0).Format(time.RFC3339))
 	}
 
 	tbl.Print()
