@@ -342,7 +342,7 @@ func FindProjectByTitle(env *runtime.Env, title, orgTitle string) (*uv1.Project,
 	return nil, false, nil
 }
 
-// listProjects lists projects.
+// ListProjects lists projects.
 func ListProjects(env *runtime.Env, orgTitle string) ([]*uv1.Project, error) {
 	path, orgID, err := buildPath(env, orgTitle)
 	if err != nil {

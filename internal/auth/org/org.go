@@ -307,6 +307,7 @@ func FindOrgByTitle(env *runtime.Env, title string) (*uv1.Organization, bool, er
 	return nil, false, nil
 }
 
+// ListOrganizations lists organizations.
 func ListOrganizations(env *runtime.Env) ([]*uv1.Organization, error) {
 	var req uv1.ListOrganizationsRequest
 	var resp uv1.ListOrganizationsResponse
