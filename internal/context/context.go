@@ -1,4 +1,4 @@
-package config
+package context
 
 import (
 	"context"
@@ -6,33 +6,27 @@ import (
 
 	"github.com/llm-operator/cli/internal/auth/org"
 	"github.com/llm-operator/cli/internal/auth/project"
-	"github.com/llm-operator/cli/internal/configs"
 	"github.com/llm-operator/cli/internal/runtime"
 	"github.com/spf13/cobra"
+)
+
+const (
+	orgKey     = "organization"
+	projectKey = "project"
 )
 
 // Cmd returns a new config command.
 func Cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                "config",
-		Short:              "Config commands",
+		Use:                "context",
+		Short:              "Context commands",
 		Args:               cobra.NoArgs,
 		DisableFlagParsing: true,
 	}
-	cmd.AddCommand(createCmd())
 	cmd.AddCommand(setCmd())
 	return cmd
 }
 
-func createCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:  "create",
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return configs.CreateNewConfig()
-		},
-	}
-}
 func setCmd() *cobra.Command {
 	return &cobra.Command{
 		Use: "set",
@@ -52,7 +46,7 @@ func set(ctx context.Context, key, value string) error {
 	}
 
 	switch key {
-	case "organization":
+	case orgKey:
 		o, found, err := org.FindOrgByTitle(env, value)
 		if err != nil {
 			return err
@@ -64,7 +58,7 @@ func set(ctx context.Context, key, value string) error {
 		if err := env.Config.Save(); err != nil {
 			return err
 		}
-	case "project":
+	case projectKey:
 		p, found, err := project.FindProjectByTitle(env, value, "")
 		if err != nil {
 			return err
