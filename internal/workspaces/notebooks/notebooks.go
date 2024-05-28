@@ -46,7 +46,7 @@ func createCmd() *cobra.Command {
 			return create(cmd.Context(), name, imgType)
 		},
 	}
-	cmd.Flags().StringVar(&name, "name", "", "Name of the API key")
+	cmd.Flags().StringVar(&name, "name", "", "Name of the Notebook")
 	cmd.Flags().StringVar(&imgType, "image-type", "jupyter-lab-base", "Type of the Notebook Image")
 	_ = cmd.MarkFlagRequired("name")
 	return cmd
