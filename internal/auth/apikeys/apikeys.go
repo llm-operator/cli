@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	pathPattern = "/organizations/%s/projects/%s/api-keys"
+	pathPattern = "/organizations/%s/projects/%s/api_keys"
 )
 
 // Cmd is the root command for apikeys.
