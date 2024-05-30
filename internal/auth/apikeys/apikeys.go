@@ -97,18 +97,18 @@ func create(ctx context.Context, name, orgTitle, projectTitle string) error {
 		return err
 	}
 
-	org, project, err := findOrgAndProject(env, orgTitle, projectTitle)
+	orgID, projectID, err := findOrgAndProject(env, orgTitle, projectTitle)
 	if err != nil {
 		return err
 	}
 
 	req := &uv1.CreateAPIKeyRequest{
 		Name:           name,
-		OrganizationId: org.Id,
-		ProjectId:      project.Id,
+		OrganizationId: orgID,
+		ProjectId:      projectID,
 	}
 	var resp uv1.APIKey
-	path := fmt.Sprintf(pathPattern, org.Id, project.Id)
+	path := fmt.Sprintf(pathPattern, orgID, projectID)
 	if err := ihttp.NewClient(env).Send(http.MethodPost, path, &req, &resp); err != nil {
 		return err
 	}
@@ -123,17 +123,17 @@ func list(ctx context.Context, orgTitle, projectTitle string) error {
 		return err
 	}
 
-	org, project, err := findOrgAndProject(env, orgTitle, projectTitle)
+	orgID, projectID, err := findOrgAndProject(env, orgTitle, projectTitle)
 	if err != nil {
 		return err
 	}
 
 	req := &uv1.ListAPIKeysRequest{
-		OrganizationId: org.Id,
-		ProjectId:      project.Id,
+		OrganizationId: orgID,
+		ProjectId:      projectID,
 	}
 	var resp uv1.ListAPIKeysResponse
-	path := fmt.Sprintf(pathPattern, org.Id, project.Id)
+	path := fmt.Sprintf(pathPattern, orgID, projectID)
 	if err := ihttp.NewClient(env).Send(http.MethodGet, path, req, &resp); err != nil {
 		return err
 	}
@@ -156,12 +156,12 @@ func delete(ctx context.Context, name, orgTitle, projectTitle string) error {
 		return err
 	}
 
-	org, project, err := findOrgAndProject(env, orgTitle, projectTitle)
+	orgID, projectID, err := findOrgAndProject(env, orgTitle, projectTitle)
 	if err != nil {
 		return err
 	}
 
-	key, found, err := findKeyByName(ctx, env, name, org, project)
+	key, found, err := findKeyByName(ctx, env, name, orgID, projectID)
 	if err != nil {
 		return err
 	}
@@ -171,11 +171,11 @@ func delete(ctx context.Context, name, orgTitle, projectTitle string) error {
 
 	req := &uv1.DeleteAPIKeyRequest{
 		Id:             key.Id,
-		OrganizationId: org.Id,
-		ProjectId:      project.Id,
+		OrganizationId: orgID,
+		ProjectId:      projectID,
 	}
 	var resp uv1.DeleteAPIKeyResponse
-	path := fmt.Sprintf(pathPattern, org.Id, project.Id)
+	path := fmt.Sprintf(pathPattern, orgID, projectID)
 	if err := ihttp.NewClient(env).Send(http.MethodDelete, fmt.Sprintf("%s/%s", path, key.Id), &req, &resp); err != nil {
 		return err
 	}
@@ -185,39 +185,70 @@ func delete(ctx context.Context, name, orgTitle, projectTitle string) error {
 	return nil
 }
 
-func findOrgAndProject(env *runtime.Env, orgTitle, projectTitle string) (*uv1.Organization, *uv1.Project, error) {
-	org, found, err := org.FindOrgByTitle(env, orgTitle)
+func findOrgAndProject(env *runtime.Env, orgTitle, projectTitle string) (string, string, error) {
+	orgID, err := findOrgID(env, orgTitle)
 	if err != nil {
-		return nil, nil, err
+		return "", "", err
 	}
-	if !found {
-		return nil, nil, fmt.Errorf("organization not found")
+	projectID, err := findProjectID(env, orgTitle, projectTitle)
+	if err != nil {
+		return "", "", err
+	}
+
+	return orgID, projectID, nil
+}
+
+func findProjectID(env *runtime.Env, orgTitle, projectTitle string) (string, error) {
+	if projectTitle == "" {
+		pid := env.Config.Context.ProjectID
+		if pid == "" {
+			return "", fmt.Errorf("--project-title flag must be specified or the project must be specified by 'llmo context set'")
+		}
+		return pid, nil
 	}
 
 	project, found, err := project.FindProjectByTitle(env, projectTitle, orgTitle)
 	if err != nil {
-		return nil, nil, err
+		return "", err
 	}
 	if !found {
-		return nil, nil, fmt.Errorf("project not found in organization")
+		return "", fmt.Errorf("project not found in organization")
+	}
+	return project.Id, nil
+}
+
+func findOrgID(env *runtime.Env, orgTitle string) (string, error) {
+	if orgTitle == "" {
+		oid := env.Config.Context.OrganizationID
+		if oid == "" {
+			return "", fmt.Errorf("--organization-title flag must be specified or the organization must be specified by 'llmo context set'")
+		}
+		return oid, nil
 	}
 
-	return org, project, nil
+	org, found, err := org.FindOrgByTitle(env, orgTitle)
+	if err != nil {
+		return "", err
+	}
+	if !found {
+		return "", fmt.Errorf("organization not found")
+	}
+	return org.Id, nil
 }
 
 func findKeyByName(
 	ctx context.Context,
 	env *runtime.Env,
 	name string,
-	org *uv1.Organization,
-	project *uv1.Project,
+	orgID string,
+	projectID string,
 ) (*uv1.APIKey, bool, error) {
 	req := &uv1.ListAPIKeysRequest{
-		OrganizationId: org.Id,
-		ProjectId:      project.Id,
+		OrganizationId: orgID,
+		ProjectId:      projectID,
 	}
 	var resp uv1.ListAPIKeysResponse
-	path := fmt.Sprintf(pathPattern, org.Id, project.Id)
+	path := fmt.Sprintf(pathPattern, orgID, projectID)
 	if err := ihttp.NewClient(env).Send(http.MethodGet, path, &req, &resp); err != nil {
 		return nil, false, err
 	}
