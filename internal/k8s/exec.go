@@ -70,7 +70,7 @@ func ExecPod(ctx context.Context, pod *corev1.Pod) error {
 	}
 	defer in.RestoreTerminal()
 
-	err = exec.Stream(remotecommand.StreamOptions{
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdin:  in,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
