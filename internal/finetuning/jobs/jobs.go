@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -246,6 +247,9 @@ func podLog(ctx context.Context, pod *corev1.Pod) error {
 	}()
 	_, err = io.Copy(os.Stdout, stream)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
 		return err
 	}
 	return nil
