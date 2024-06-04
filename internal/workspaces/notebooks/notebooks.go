@@ -235,6 +235,14 @@ func open(ctx context.Context, id string) error {
 		return err
 	}
 
+	var resp jv1.Notebook
+	if err := ihttp.NewClient(env).Send(http.MethodGet, fmt.Sprintf("%s/%s", path, id), &jv1.GetJobRequest{}, &resp); err != nil {
+		return err
+	}
+	if resp.Status != "running" {
+		return fmt.Errorf("notebook %q is not running (status: %s)", resp.Name, resp.Status)
+	}
+
 	fmt.Println("Opening browser...")
 	nbURL := fmt.Sprintf("%s/services/notebooks/%s?token=%s", env.Config.EndpointURL, id, token)
 	return browser.OpenURL(nbURL)

@@ -1,51 +1,71 @@
 package nbtoken
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/zchee/go-xdgbasedir"
+	"gopkg.in/yaml.v2"
 )
+
+const version = "v1"
+
+type notebookTokens struct {
+	Version string            `yaml:"version"`
+	Tokens  map[string]string `yaml:"tokens"`
+}
 
 // SaveToken saves the token to a file.
 func SaveToken(nbID, token string) error {
+	t, err := loadTokens()
+	if err != nil {
+		return err
+	}
+	t.Tokens[nbID] = token
+
 	path := tokenFilePath()
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	fileData, err := yaml.Marshal(&t)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-
-	_, err = fmt.Fprintf(file, "%s: %s\n", nbID, token)
-	return err
+	return os.WriteFile(path, fileData, 0600)
 }
 
 // LoadToken loads the token from a file.
 func LoadToken(nbID string) (string, error) {
-	file, err := os.Open(tokenFilePath())
+	t, err := loadTokens()
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.SplitN(line, ": ", 2)
-		if len(parts) == 2 && parts[0] == nbID {
-			return parts[1], nil
+	token, ok := t.Tokens[nbID]
+	if !ok {
+		return "", fmt.Errorf("key not found")
+	}
+	return token, nil
+}
+
+func loadTokens() (*notebookTokens, error) {
+	file, err := os.ReadFile(tokenFilePath())
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &notebookTokens{
+				Version: version,
+				Tokens:  make(map[string]string),
+			}, nil
 		}
+		return nil, err
 	}
-	if err := scanner.Err(); err != nil {
-		return "", err
+
+	var t notebookTokens
+	if err := yaml.Unmarshal(file, &t); err != nil {
+		return nil, err
 	}
-	return "", fmt.Errorf("key not found")
+	return &t, nil
 }
 
 func tokenFilePath() string {
