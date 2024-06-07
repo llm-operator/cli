@@ -249,7 +249,6 @@ func delete(ctx context.Context, name string) error {
 	env, err := runtime.NewEnv(ctx)
 	if err != nil {
 		return err
-
 	}
 	var resp jv1.DeleteNotebookResponse
 	if err := ihttp.NewClient(env).Send(http.MethodDelete, fmt.Sprintf("%s/%s", path, id), &jv1.DeleteNotebookRequest{}, &resp); err != nil {
