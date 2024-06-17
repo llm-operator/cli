@@ -46,7 +46,7 @@ func listCmd() *cobra.Command {
 
 func deleteCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete",
+		Use:  "delete <ID>",
 		Args: validateIDArg,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return delete(cmd.Context(), args[0])
