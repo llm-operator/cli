@@ -49,7 +49,7 @@ func loginCmd() *cobra.Command {
 			}
 
 			if noOpen {
-				fmt.Printf("Please open the following URL brom your browser:\n%s\n", loginURL)
+				fmt.Printf("Please open the following URL from your browser:\n%s\n", loginURL)
 			} else {
 				fmt.Println("Opening browser to login...")
 				if err := browser.OpenURL(loginURL); err != nil {
