@@ -24,8 +24,8 @@ type client struct {
 
 func loginCmd() *cobra.Command {
 	var (
-		cli     client
-		verbose bool
+		cli    client
+		noOpen bool
 	)
 	cmd := cobra.Command{
 		Use:   "login",
@@ -48,12 +48,13 @@ func loginCmd() *cobra.Command {
 				return fmt.Errorf("get login URL: %v", err)
 			}
 
-			fmt.Println("Opening browser to login...")
-			if verbose {
-				fmt.Printf("URL: %s\n", loginURL)
-			}
-			if err := browser.OpenURL(loginURL); err != nil {
-				return err
+			if noOpen {
+				fmt.Printf("Please open the following URL brom your browser:\n%s\n", loginURL)
+			} else {
+				fmt.Println("Opening browser to login...")
+				if err := browser.OpenURL(loginURL); err != nil {
+					return err
+				}
 			}
 
 			ru, err := url.Parse(c.Auth.RedirectURI)
@@ -82,7 +83,7 @@ func loginCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
+	cmd.Flags().BoolVar(&noOpen, "no-open", false, "Do not open the browser")
 	return &cmd
 }
 
