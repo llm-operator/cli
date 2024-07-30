@@ -36,6 +36,7 @@ func Cmd() *cobra.Command {
 	cmd.AddCommand(createCmd())
 	cmd.AddCommand(listCmd())
 	cmd.AddCommand(getCmd())
+	cmd.AddCommand(deleteCmd())
 	cmd.AddCommand(cancelCmd())
 	return cmd
 }
@@ -103,6 +104,17 @@ func getCmd() *cobra.Command {
 		Args: validateIDArg,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return get(cmd.Context(), args[0])
+		},
+	}
+	return cmd
+}
+
+func deleteCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "delete <ID>",
+		Args: validateIDArg,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return delete(cmd.Context(), args[0])
 		},
 	}
 	return cmd
@@ -181,6 +193,10 @@ func list(ctx context.Context) error {
 
 func get(ctx context.Context, id string) error {
 	return sendRequestAndPrintBatchJob(ctx, http.MethodGet, fmt.Sprintf("%s/%s", path, id), &jv1.GetBatchJobRequest{})
+}
+
+func delete(ctx context.Context, id string) error {
+	return sendRequestAndPrintBatchJob(ctx, http.MethodDelete, fmt.Sprintf("%s/%s", path, id), &jv1.GetBatchJobRequest{})
 }
 
 func cancel(ctx context.Context, id string) error {
