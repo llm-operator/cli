@@ -11,7 +11,6 @@ import (
 	ihttp "github.com/llm-operator/cli/internal/http"
 	"github.com/llm-operator/cli/internal/runtime"
 	iv1 "github.com/llm-operator/inference-manager/api/v1"
-	"github.com/llm-operator/inference-manager/common/pkg/sse"
 	"github.com/spf13/cobra"
 )
 
@@ -91,7 +90,7 @@ func create(
 	if err != nil {
 		return err
 	}
-	scanner := sse.NewScanner(body)
+	scanner := NewScanner(body)
 
 	for scanner.Scan() {
 		resp := scanner.Text()
