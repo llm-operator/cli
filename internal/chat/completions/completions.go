@@ -109,7 +109,7 @@ func create(
 		if err := json.Unmarshal([]byte(respD), &d); err != nil {
 			log.Printf("\n----------------- ERROR \n")
 			log.Printf("resp: %s\n", resp)
-			log.Printf("respD: %s\n\n", respD)
+			log.Printf("respD: %q\nlen=%d\n", respD, len(respD))
 			log.Printf("err: %s\n", err)
 			return fmt.Errorf("unmarshal response: %s", err)
 		}
