@@ -101,7 +101,9 @@ func create(
 		}
 
 		respD := resp[5:]
-		if respD == " [DONE]" {
+		// Check if this is the terminal message. Just check the prefix as the message
+		// may contain a newline character.
+		if strings.HasPrefix(respD, " [DONE]") {
 			break
 		}
 
